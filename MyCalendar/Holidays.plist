@@ -6,6 +6,8 @@
 	<dict>
 		<key>1225</key>
 		<string>圣诞节</string>
+		<key>1224</key>
+		<string>平安夜</string>
 		<key>1209</key>
 		<string>世界足球日</string>
 		<key>1204</key>
@@ -161,6 +163,8 @@
 		<string>重阳节</string>
 		<key>0815</key>
 		<string>中秋节</string>
+		<key>0715</key>
+		<string>中元节</string>
 		<key>0707</key>
 		<string>乞巧节(中国情人节)</string>
 		<key>0505</key>

@@ -18,30 +18,12 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    
-//    NSCalendarUnit unit = NSCalendarUnitEra|NSCalendarUnitYear|NSCalendarUnitMonth|NSCalendarUnitDay|NSCalendarUnitHour|NSCalendarUnitMinute|NSCalendarUnitSecond|NSCalendarUnitWeekday|NSCalendarUnitWeekdayOrdinal|NSCalendarUnitQuarter|NSCalendarUnitWeekOfMonth|NSCalendarUnitWeekOfYear|NSCalendarUnitYearForWeekOfYear|NSCalendarUnitNanosecond|NSCalendarUnitCalendar|NSCalendarUnitTimeZone;
-//    
-//    NSDate *nowDate = [NSDate date];
-//    
-//    NSCalendar *calendar = [NSCalendar calendarWithIdentifier:NSCalendarIdentifierGregorian];
-//    
-//    NSLog(@"%ld",[calendar component:NSCalendarUnitWeekOfMonth fromDate:nowDate]);
-//    
-//    NSDateComponents *components = [calendar components:unit fromDate:nowDate];
-//    
-//    NSLog(@"%@",components);
-    
-    
-    
-    
-    
-    
-    
     
     
 
 }
+
+
 - (IBAction)buttonClicked:(UIButton *)sender {
     
     CalendarLayout *layout = [[CalendarLayout alloc] init];
