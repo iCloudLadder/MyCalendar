@@ -64,7 +64,7 @@ static NSString * const sectionHeaderReuseIdentifier = @"SectionHeaderView";
     
     // Configure the cell
     cell.dayModel = [_dayModels objectAtIndex:indexPath.item];
-    cell.dayLabel.backgroundColor = [UIColor clearColor];
+    //cell.dayLabel.backgroundColor = [UIColor clearColor];
     cell.hiddenPerAndNextMonthDay = YES;
     
     return cell;

@@ -24,5 +24,8 @@
 // self 所在月份的天数
 -(NSUInteger)getNumberOfDaysInCurrentMonth;
 
+// 获取 当天的 日期的 字符串
+-(NSString*)getStringOfToday;
+
 
 @end

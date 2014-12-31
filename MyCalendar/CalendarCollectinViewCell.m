@@ -54,7 +54,7 @@
     self.selectedBackgroundView = backgroundView;
 }
 
-#pragma amrk - creatSubviews
+#pragma mark - creatSubviews
 -(void)creatSubViews
 {
     CGFloat length = CGRectGetWidth(self.bounds);
@@ -112,8 +112,10 @@
     _dayLabel.text = dayModel.day;
     
     [self setLabelTextColorWith:dayModel];
-    
     [self setChineseDayLabelTextWith:dayModel];
+    
+    // 如果日期 是今天
+    _dayLabel.backgroundColor = [self dateIsTodayWith:dayModel]?[UIColor greenColor]:[UIColor clearColor];
 }
 
 
@@ -131,7 +133,7 @@
     [self resetChineseDayLabelTextWith:text];
 }
 
-
+// 设置 中国日历 标签
 -(void)resetChineseDayLabelTextWith:(NSString*)text
 {
     CGFloat maxHeight = CGRectGetHeight(self.frame)-CGRectGetHeight(_dayLabel.frame);
@@ -142,6 +144,7 @@
     _chineseDayLabel.text = text;
 }
 
+// 获得 文本 高度
 -(CGFloat)getTextSizeWith:(NSString*)text
 {
     NSDictionary * tdic = [NSDictionary dictionaryWithObject:_chineseDayLabel.font forKey:NSFontAttributeName];
@@ -153,12 +156,14 @@
 
 
 
-
+// 设置 标签 文本的颜色
 -(void)setLabelTextColorWith:(MyCalendarDayModel*)dayModel
 {
+    // 本月中显示的 前一个月 或 后一个月 的日期 颜色
     if (dayModel.dayOfMonth != DayOfMonthCurrentMonth) {
         _dayLabel.textColor = _chineseDayLabel.textColor = kPerOrNextMonthDayTextColor;
     }else if (dayModel.weekDay == 1 || dayModel.weekDay == 7){
+        // 周日 周六
         _dayLabel.textColor = kWeekEndTextColor;
     }else{
         _dayLabel.textColor = kDayLableTextColor;
@@ -166,6 +171,7 @@
     _chineseDayLabel.textColor = ([dayModel.holiday length] || [dayModel.chineseHoliday length])?kHolidayTextColor:kChineseDayLableTextColor;
 }
 
+// 是否 隐藏 前一个月 或 后一个月 在本月的 日期
 -(void)setHiddenPerAndNextMonthDay:(BOOL)hiddenPerAndNextMonthDay
 {
     _hiddenPerAndNextMonthDay = hiddenPerAndNextMonthDay;
@@ -174,6 +180,15 @@
     }else{
         self.hidden = NO;
     }
+}
+
+// 日期 是否是 今天
+-(BOOL)dateIsTodayWith:(MyCalendarDayModel*)dayModel
+{
+    NSCalendarUnit unit = NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay;
+    NSDateComponents *components = [[NSCalendar currentCalendar] components:unit fromDate:[NSDate date]];
+    
+    return [dayModel.year integerValue] == components.year && [dayModel.month integerValue] == components.month && [dayModel.day integerValue] == components.day;
 }
 
 
@@ -185,7 +200,7 @@
     BOOL old = [change[@"old"] boolValue];
     if (new != old) {
         CalendarCollectinViewCell *cell = object;
-        cell.dayLabel.backgroundColor = new?[UIColor orangeColor]:[UIColor clearColor];
+        cell.dayLabel.backgroundColor = new?[UIColor orangeColor]:[self dateIsTodayWith:_dayModel]?[UIColor greenColor]:[UIColor clearColor];
         if (![cell.dayModel.holiday length] && ![cell.dayModel.chineseHoliday length]) {
             cell.chineseDayLabel.text = new?[NSString stringWithFormat:@"%@%@/%@",cell.dayModel.chineseLeap,cell.dayModel.chineseMonthNumber,cell.dayModel.chineseDayNumber]:cell.dayModel.chineseDay;
         }

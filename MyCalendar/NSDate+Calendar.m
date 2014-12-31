@@ -155,7 +155,7 @@ static NSCalendar *myCalendar = nil;
     NSDate *date = [kGregorianCalendar dateFromComponents:gregorianComponents];
     // 计算 农历 日期
     NSDateComponents *chineseComponents = [kChineseCalendar components:[self getYMDWCalendarUnit] fromDate:date];
-    NSLog(@"year = %@",chineseComponents);
+    // NSLog(@"year = %@",chineseComponents);
     // 获得 汉字 日期
     NSMutableDictionary *chineseCalendar = [NSMutableDictionary dictionaryWithDictionary:[MyCalendarObject getChineseCalendarWith:chineseComponents]];
     // 计算 农历 年份
@@ -235,7 +235,13 @@ static NSCalendar *myCalendar = nil;
 
 
 
-
+// 获取 当天的 日期的 字符串
+-(NSString*)getStringOfToday
+{
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"yyyyMMdd"];
+    return [formatter stringFromDate:self];
+}
 
 
 
