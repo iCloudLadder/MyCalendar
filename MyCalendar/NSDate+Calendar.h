@@ -24,8 +24,19 @@
 // self 所在月份的天数
 -(NSUInteger)getNumberOfDaysInCurrentMonth;
 
-// 获取 当天的 日期的 字符串
+// self相差month个月的日期
+-(NSDate*)getDateOfOtherMonthFrom:(NSInteger)month;
+
+// 获取 self 日期的 字符串
 -(NSString*)getStringOfToday;
 
+// 根据年，月 返回当月与今天相同的日期
++(NSDate*)getDateOfFirstDayWith:(NSInteger)year month:(NSInteger)month;
+
+// 比较两个人日期是否为同一天
+-(BOOL)isTheSameDay:(NSDate*)date;
+
+// 比较日期是否是今天
+-(BOOL)isToday;
 
 @end

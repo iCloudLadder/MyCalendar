@@ -20,11 +20,19 @@ typedef NSCalendar* (^CalendarBlock)(NSString *calendarIdentifier);
 
 
 
-
 @implementation NSDate (Calendar)
 
-static NSCalendar *myCalendar = nil;
+#define kShareCalendar [NSDate shareCalendar]
 
++(NSCalendar*)shareCalendar
+{
+    static NSCalendar *myCalendar = nil;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        myCalendar = kGregorianCalendar;
+    });
+    return myCalendar;
+}
 
 /*
  * 获取 日期 所在月份的 日历数据
@@ -32,11 +40,6 @@ static NSCalendar *myCalendar = nil;
 
 -(NSMutableArray*)getDayModelsInCurrentMonth
 {
-    // 获取 公历
-    if (!myCalendar) {
-        myCalendar = kGregorianCalendar;
-    }
-    
     NSMutableArray *dayModels = [[NSMutableArray alloc] init];
     
     // 创建 上个月 在当前月的 天 的 日历数据
@@ -54,7 +57,7 @@ static NSCalendar *myCalendar = nil;
 {
     // 天数
     NSInteger numberOfDays = [self getNumberOfDaysInCurrentMonth];
-    NSDateComponents *components = [myCalendar components:[self getYMDWCalendarUnit] fromDate:self];
+    NSDateComponents *components = [kShareCalendar components:[self getYMDWCalendarUnit] fromDate:self];
     // 当月 日历 数据
     for (NSInteger day = 1; day <= numberOfDays; day++) {
         // 设置 day 后 新的 日历结构
@@ -71,8 +74,8 @@ static NSCalendar *myCalendar = nil;
 -(NSDateComponents*)getNewComponentsAfterSetDayWith:(NSDateComponents*)com with:(NSUInteger)day
 {
     [com setDay:day];
-    NSDate *newDate = [myCalendar dateFromComponents:com];
-    return [myCalendar components:[self getYMDWCalendarUnit] fromDate:newDate];
+    NSDate *newDate = [kShareCalendar dateFromComponents:com];
+    return [kShareCalendar components:[self getYMDWCalendarUnit] fromDate:newDate];
 }
 
 
@@ -85,7 +88,7 @@ static NSCalendar *myCalendar = nil;
     NSUInteger daysPerMonth = [perMonthDay getNumberOfDaysInCurrentMonth];
     
     NSMutableArray *dayModels = [[NSMutableArray alloc] init];
-    NSDateComponents *components = [myCalendar components:[self getYMDWCalendarUnit] fromDate:perMonthDay];
+    NSDateComponents *components = [kShareCalendar components:[self getYMDWCalendarUnit] fromDate:perMonthDay];
     // 上个月 在 当前月的天 的日历数据
     for (NSInteger day = daysPerMonth - daysOfPerMonthInCureentMonth + 1; day <= daysPerMonth; ++day) {
         NSDateComponents *newComponents = [self getNewComponentsAfterSetDayWith:components with:day];
@@ -103,7 +106,7 @@ static NSCalendar *myCalendar = nil;
     
     NSMutableArray *dayModels = [[NSMutableArray alloc] init];
     // 当前 perMonthDay 所在月份的 日历结构
-    NSDateComponents *components = [myCalendar components:[self getYMDWCalendarUnit] fromDate:perMonthDay];
+    NSDateComponents *components = [kShareCalendar components:[self getYMDWCalendarUnit] fromDate:perMonthDay];
     //
     for (NSInteger day = 1; day <= 7 - weekDayOfLastDay; ++day) {
         [components setDay:day];
@@ -128,13 +131,14 @@ static NSCalendar *myCalendar = nil;
 -(NSDate*)getDateOfOtherMonthWith:(NSDateComponents*)components
 {
     // 计算  toDate 相差 components（年月日时分秒，当前只用到 月） 的时间 的 日期
-   return [myCalendar dateByAddingComponents:components toDate:self options:0];
+   return [kShareCalendar dateByAddingComponents:components toDate:self options:0];
 }
 
 #pragma mark - 获取 day model
 -(MyCalendarDayModel*)getDayModelWith:(NSDateComponents*)components day:(NSUInteger)day dayOfMonth:(DayOfMonth)dayOfMonth
 {
     MyCalendarDayModel *dayModel = [[MyCalendarDayModel alloc] init];
+    dayModel.date = [kShareCalendar dateFromComponents:components];
     dayModel.year = [NSString stringWithFormat:@"%ld",components.year];
     dayModel.month = [NSString stringWithFormat:@"%ld",components.month];
     dayModel.day = [NSString stringWithFormat:@"%ld",components.day];
@@ -152,7 +156,7 @@ static NSCalendar *myCalendar = nil;
 -(void)getChineseCalendarInfoWith:(NSDateComponents*)gregorianComponents dayModel:(MyCalendarDayModel*)dayModel
 {
     // 获取 阳历日期
-    NSDate *date = [kGregorianCalendar dateFromComponents:gregorianComponents];
+    NSDate *date = [kShareCalendar dateFromComponents:gregorianComponents];
     // 计算 农历 日期
     NSDateComponents *chineseComponents = [kChineseCalendar components:[self getYMDWCalendarUnit] fromDate:date];
     // NSLog(@"year = %@",chineseComponents);
@@ -178,14 +182,14 @@ static NSCalendar *myCalendar = nil;
 // 年 月 日 周 月份第几周
 -(NSCalendarUnit)getYMDWCalendarUnit
 {
-    return NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay | NSCalendarUnitWeekday | NSCalendarUnitWeekOfMonth;
+    return NSCalendarUnitEra | NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay | NSCalendarUnitWeekday | NSCalendarUnitHour | NSCalendarUnitMinute | NSCalendarUnitSecond | NSCalendarUnitWeekOfMonth;
 }
 
 
 // self 所在月份的天数
 -(NSUInteger)getNumberOfDaysInCurrentMonth
 {
-    NSRange range = [myCalendar rangeOfUnit:NSCalendarUnitDay inUnit:NSCalendarUnitMonth forDate:self];
+    NSRange range = [kShareCalendar rangeOfUnit:NSCalendarUnitDay inUnit:NSCalendarUnitMonth forDate:self];
     return range.length;
 }
 
@@ -196,7 +200,7 @@ static NSCalendar *myCalendar = nil;
 -(NSDate*)getFirstDayInCurrentMonth
 {
     NSDate *startDate;
-    [myCalendar rangeOfUnit:NSCalendarUnitMonth startDate:&startDate interval:nil forDate:self];
+    [kShareCalendar rangeOfUnit:NSCalendarUnitMonth startDate:&startDate interval:nil forDate:self];
     return startDate;
 }
 
@@ -206,7 +210,7 @@ static NSCalendar *myCalendar = nil;
 
 -(NSInteger)getFristDayIsWeekDayInCurrentMonth
 {
-    NSInteger weekDay = [myCalendar ordinalityOfUnit:NSCalendarUnitDay inUnit:NSCalendarUnitWeekOfMonth forDate:self];
+    NSInteger weekDay = [kShareCalendar ordinalityOfUnit:NSCalendarUnitDay inUnit:NSCalendarUnitWeekOfMonth forDate:self];
     return weekDay;
 }
 
@@ -216,11 +220,11 @@ static NSCalendar *myCalendar = nil;
 
 -(NSUInteger)getLastDayIsWeekDayInCurrentMonthWith:(NSUInteger)daysInCurrentMonth
 {
-    NSCalendarUnit YMD = NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay ;
-    NSDateComponents *components = [myCalendar components:YMD fromDate:self];
+    // NSCalendarUnit YMD = NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay ;
+    NSDateComponents *components = [kShareCalendar components:[self getYMDWCalendarUnit] fromDate:self];
     components.day = daysInCurrentMonth;
-    NSDate *date = [myCalendar dateFromComponents:components];
-    return [myCalendar ordinalityOfUnit:NSCalendarUnitDay inUnit:NSCalendarUnitWeekOfMonth forDate:date];
+    NSDate *date = [kShareCalendar dateFromComponents:components];
+    return [kShareCalendar ordinalityOfUnit:NSCalendarUnitDay inUnit:NSCalendarUnitWeekOfMonth forDate:date];
 }
 
 /*
@@ -229,24 +233,48 @@ static NSCalendar *myCalendar = nil;
 
 -(NSInteger)getDateWeekDayWith:(NSDateComponents*)components
 {
-    NSDate *date = [myCalendar dateFromComponents:components];
-    return [myCalendar ordinalityOfUnit:NSCalendarUnitDay inUnit:NSCalendarUnitWeekOfMonth forDate:date];
+    NSDate *date = [kShareCalendar dateFromComponents:components];
+    return [kShareCalendar ordinalityOfUnit:NSCalendarUnitDay inUnit:NSCalendarUnitWeekOfMonth forDate:date];
 }
 
 
 
-// 获取 当天的 日期的 字符串
+// 获取 self 日期的 字符串
 -(NSString*)getStringOfToday
 {
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    [formatter setDateFormat:@"yyyyMMdd"];
+    [formatter setDateFormat:@"yyyy年MM月"];
     return [formatter stringFromDate:self];
 }
 
 
+// 根据年，月 返回当月与今天相同的日期
++(NSDate*)getDateOfFirstDayWith:(NSInteger)year month:(NSInteger)month
+{
+    NSDate *nowDate = [NSDate date];
+    NSDateComponents *nowComponents = [kShareCalendar components:[nowDate getYMDWCalendarUnit] fromDate:nowDate];
+    
+    NSInteger numMonths = (year - nowComponents.year)*12 + month - nowComponents.month;
+    
+    return [nowDate getDateOfOtherMonthFrom:numMonths];
+}
 
+// 比较日期是否是今天
+-(BOOL)isToday{
+    return [self isTheSameDay:[NSDate date]];
+}
 
+// 比较两个人日期是否为同一天
+-(BOOL)isTheSameDay:(NSDate*)date
+{
+    return [[self getEraYearMonthDayDate] isEqualToDate:[date getEraYearMonthDayDate]];
+}
 
+-(NSDate*)getEraYearMonthDayDate
+{
+    NSDateComponents *components = [kShareCalendar components:(NSCalendarUnitEra | NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay) fromDate:self];
+    return [kShareCalendar dateFromComponents:components];
+}
 
 
 

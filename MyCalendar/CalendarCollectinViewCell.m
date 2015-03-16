@@ -11,7 +11,7 @@
 #define kSubViewsSpace 2.0
 
 #define kChineseDayLabelHeight 20.0
-#define kDayLableLength 35.0
+#define kDayLableLength 30.0
 
 #define kDayLableFontOfSize 15
 #define kChineseDayLableFontOfSize 10
@@ -22,6 +22,7 @@
 #define kDayLableHighlightTextColor [UIColor whiteColor]
 
 #define kChineseDayLableTextColor [UIColor grayColor]
+#define kChineseDayLableMonthTextCorlor [UIColor cyanColor]
 
 #define kPerOrNextMonthDayTextColor [UIColor lightGrayColor]
 #define kHolidayTextColor [UIColor orangeColor]
@@ -29,6 +30,7 @@
 
 @interface CalendarCollectinViewCell ()
 
+@property (nonatomic, assign) CGFloat sigleHeight;
 
 @end
 
@@ -38,10 +40,10 @@
 {
     if (self = [super initWithFrame:frame]) {
         [self creatSubViews];
-        [self addObserver:self
-               forKeyPath:@"selected"
-                  options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld
-                  context:nil];
+//        [self addObserver:self
+//               forKeyPath:@"selected"
+//                  options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld
+//                  context:nil];
     }
     return self;
 }
@@ -72,7 +74,7 @@
     _dayLabel.layer.cornerRadius = kDayLableLength/2;
     _dayLabel.layer.masksToBounds = YES;
     _dayLabel.font = [UIFont systemFontOfSize:kDayLableFontOfSize];
-    _dayLabel.backgroundColor = kSubViewsInitBackgroundColor;
+    _dayLabel.backgroundColor =  kSubViewsInitBackgroundColor;
     _dayLabel.highlightedTextColor = kDayLableHighlightTextColor;
     [self.contentView addSubview:_dayLabel];
 }
@@ -81,7 +83,9 @@
 
 -(void)creatChineseDayLabelWith:(CGFloat)selfWidth
 {
-    CGRect frame = CGRectMake(kSubViewsSpace/2, CGRectGetMaxY(_dayLabel.frame), selfWidth-kSubViewsSpace, kChineseDayLabelHeight);
+    // 事先计算好的 最多显示两行，运行中计算高度太耗时间
+    CGFloat chineseDayLabelHeight = 24.0;
+    CGRect frame = CGRectMake(kSubViewsSpace/2, CGRectGetMaxY(_dayLabel.frame), selfWidth-kSubViewsSpace, chineseDayLabelHeight);
     
     _chineseDayLabel = [[UILabel alloc] initWithFrame:frame];
     _chineseDayLabel.textAlignment = NSTextAlignmentCenter;
@@ -90,16 +94,17 @@
     _chineseDayLabel.font = [UIFont systemFontOfSize:kChineseDayLableFontOfSize];
     _chineseDayLabel.lineBreakMode = NSLineBreakByWordWrapping;
     _chineseDayLabel.numberOfLines = 0;
-    
     [self.contentView addSubview:_chineseDayLabel];
+
+//    // 设置显示最多两行
+//    if (_sigleHeight == 0.0) {
+//        _sigleHeight = [self getTextSizeWith:@"*"];
+//    }
+//    frame.size.height = _sigleHeight*2;
+//    _chineseDayLabel.frame = frame;
+    
 }
 
-#pragma mark - 节日 标签
-
--(void)creatHolidayLableWith:(CGFloat)selfWidth
-{
-    //CGFloat *c
-}
 
 #pragma mark - set someData
 
@@ -110,7 +115,9 @@
     }
     _dayModel = dayModel;
     _dayLabel.text = dayModel.day;
-    
+    // 非当前月日期，不可点击
+    self.userInteractionEnabled = dayModel.dayOfMonth == DayOfMonthCurrentMonth;
+    // 设置文本色
     [self setLabelTextColorWith:dayModel];
     [self setChineseDayLabelTextWith:dayModel];
     
@@ -122,21 +129,25 @@
 -(void)setChineseDayLabelTextWith:(MyCalendarDayModel*)dayModel
 {
     NSString *text;
-    if ([dayModel.holiday length] || [dayModel.chineseHoliday length]) {
-        text = [NSString stringWithFormat:@"%@%@",dayModel.holiday,dayModel.chineseHoliday];
+    if ([dayModel.holiday length] && [dayModel.chineseHoliday length]) {
+        text = [NSString stringWithFormat:@"%@ %@",dayModel.chineseHoliday,dayModel.holiday];
+    }else if ([dayModel.holiday length]) {
+        text = dayModel.holiday;
+    }else if ([dayModel.chineseHoliday length]) {
+        text = dayModel.chineseHoliday;
     }else if ([dayModel.chineseDay isEqualToString:@"初一"]) {
         text = dayModel.chineseMonth;
     }else{
         text = dayModel.chineseDay;
     }
-    
-    [self resetChineseDayLabelTextWith:text];
+    _chineseDayLabel.text = text;
+    // [self resetChineseDayLabelTextWith:text];
 }
-
+/*
 // 设置 中国日历 标签
 -(void)resetChineseDayLabelTextWith:(NSString*)text
 {
-    CGFloat maxHeight = CGRectGetHeight(self.frame)-CGRectGetHeight(_dayLabel.frame);
+    CGFloat maxHeight = _sigleHeight*2;
     CGFloat height = [self getTextSizeWith:text];
     CGRect frame = _chineseDayLabel.frame;
     frame.size.height = MIN(maxHeight, height);
@@ -153,22 +164,33 @@
                            attributes:tdic
                               context:nil].size.height;
 }
-
+*/
 
 
 // 设置 标签 文本的颜色
 -(void)setLabelTextColorWith:(MyCalendarDayModel*)dayModel
 {
+    UIColor *chineseDayLabelTextColor;
+    if (([dayModel.holiday length] || [dayModel.chineseHoliday length]) && (dayModel.dayOfMonth == DayOfMonthCurrentMonth)) {
+        chineseDayLabelTextColor = kHolidayTextColor;
+    }else if ([dayModel.chineseDay isEqualToString:@"初一"]) {
+        chineseDayLabelTextColor = kChineseDayLableMonthTextCorlor;
+    }else{
+        chineseDayLabelTextColor = kChineseDayLableTextColor;
+    }
+    _chineseDayLabel.textColor = chineseDayLabelTextColor;
+
+
     // 本月中显示的 前一个月 或 后一个月 的日期 颜色
     if (dayModel.dayOfMonth != DayOfMonthCurrentMonth) {
-        _dayLabel.textColor = _chineseDayLabel.textColor = kPerOrNextMonthDayTextColor;
+        _dayLabel.textColor = _chineseDayLabel.textColor =  kPerOrNextMonthDayTextColor;
     }else if (dayModel.weekDay == 1 || dayModel.weekDay == 7){
         // 周日 周六
         _dayLabel.textColor = kWeekEndTextColor;
     }else{
         _dayLabel.textColor = kDayLableTextColor;
     }
-    _chineseDayLabel.textColor = ([dayModel.holiday length] || [dayModel.chineseHoliday length])?kHolidayTextColor:kChineseDayLableTextColor;
+    
 }
 
 // 是否 隐藏 前一个月 或 后一个月 在本月的 日期
@@ -185,27 +207,15 @@
 // 日期 是否是 今天
 -(BOOL)dateIsTodayWith:(MyCalendarDayModel*)dayModel
 {
-    NSCalendarUnit unit = NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay;
-    NSDateComponents *components = [[NSCalendar currentCalendar] components:unit fromDate:[NSDate date]];
-    
-    return [dayModel.year integerValue] == components.year && [dayModel.month integerValue] == components.month && [dayModel.day integerValue] == components.day;
+    return [dayModel.date isToday];
 }
 
-
-#pragma mark - selected
-
--(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+-(BOOL)isChineseCalendarFirstDayWith:(NSString*)dayStr
 {
-    BOOL new = [change[@"new"] boolValue];
-    BOOL old = [change[@"old"] boolValue];
-    if (new != old) {
-        CalendarCollectinViewCell *cell = object;
-        cell.dayLabel.backgroundColor = new?[UIColor orangeColor]:[self dateIsTodayWith:_dayModel]?[UIColor greenColor]:[UIColor clearColor];
-        if (![cell.dayModel.holiday length] && ![cell.dayModel.chineseHoliday length]) {
-            cell.chineseDayLabel.text = new?[NSString stringWithFormat:@"%@%@/%@",cell.dayModel.chineseLeap,cell.dayModel.chineseMonthNumber,cell.dayModel.chineseDayNumber]:cell.dayModel.chineseDay;
-        }
-    }
+    return [dayStr isEqualToString:@"初一"];
 }
+
+
 
 
 #pragma mark - draw
@@ -217,20 +227,34 @@
     CGContextFillRect(context, rect);
     
     CGContextSetRGBFillColor(context, 0.9, 0.9, 0.9, 1);
-    CGContextSetLineWidth(context, 0.5);
-    CGContextMoveToPoint(context, 0, 0);
-    CGContextAddLineToPoint(context, rect.size.width, 0);
+    CGContextSetLineWidth(context, 0.2);
+    CGContextMoveToPoint(context, 0, rect.size.height);
+    CGContextAddLineToPoint(context, rect.size.width, rect.size.height);
     CGContextStrokePath(context);
     
 }
 
 
-
-
--(void)dealloc
-{
-    [self removeObserver:self forKeyPath:@"selected"];
-}
-
+//#pragma mark - selected
+//
+//-(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+//{
+//    BOOL new = [change[@"new"] boolValue];
+//    BOOL old = [change[@"old"] boolValue];
+//    if (new != old) {
+//        CalendarCollectinViewCell *cell = object;
+//        cell.dayLabel.backgroundColor = new?[UIColor orangeColor]:[self dateIsTodayWith:_dayModel]?[UIColor greenColor]:[UIColor clearColor];
+//        if (![cell.dayModel.holiday length] && ![cell.dayModel.chineseHoliday length]) {
+//            cell.chineseDayLabel.text = new?[NSString stringWithFormat:@"%@%@/%@",cell.dayModel.chineseLeap,cell.dayModel.chineseMonthNumber,cell.dayModel.chineseDayNumber]:
+//            ([cell.dayModel.chineseDay isEqualToString:@"初一"]?cell.dayModel.chineseMonth:cell.dayModel.chineseDay);
+//        }
+//    }
+//}
+//
+//-(void)dealloc
+//{
+//    [self removeObserver:self forKeyPath:@"selected"];
+//}
+//
 
 @end

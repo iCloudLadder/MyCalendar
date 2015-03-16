@@ -21,6 +21,9 @@ static NSDictionary *_holidays = nil;
 +(NSDictionary*)getChineseCalendarWith:(NSDateComponents*)components
 {
     NSString *month = [MyCalendarObject getChineseCalendarMonthStringWith:components.month];
+    if (components.leapMonth) {
+        month = [NSString stringWithFormat:@"闰%@",month];
+    }
     NSString *day = [MyCalendarObject getChineseCalendarDayStringWith:components.day];
     NSString *holiday = [MyCalendarObject getChineseHolidayWith:components.month day:components.day];
     return @{@"month":month,@"day":day,@"holiday":holiday};

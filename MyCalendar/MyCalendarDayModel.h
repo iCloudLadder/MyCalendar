@@ -16,6 +16,8 @@ typedef NS_ENUM(NSInteger, DayOfMonth) {
 
 @interface MyCalendarDayModel : NSObject
 
+@property (nonatomic, strong) NSDate *date;
+
 @property (nonatomic, strong) NSString *year,*month,*day,*holiday;
 
 @property (nonatomic, assign) NSInteger weekDay;

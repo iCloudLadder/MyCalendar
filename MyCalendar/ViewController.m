@@ -7,8 +7,8 @@
 //
 
 #import "ViewController.h"
-#import "CalendarCollectionViewController.h"
-#import "CalendarLayout.h"
+#import "CalendarAPI.h"
+#import "ShowYearAndMonthView.h";
 
 @interface ViewController ()
 
@@ -20,16 +20,25 @@
     [super viewDidLoad];
     
     
-
+    
+    ShowYearAndMonthView *syam = [[ShowYearAndMonthView alloc] initWithFrame:CGRectMake(20, 200, 300, 40)];
+    
+    [self.view addSubview:syam];
+    
+    
+    
 }
 
 
 - (IBAction)buttonClicked:(UIButton *)sender {
     
-    CalendarLayout *layout = [[CalendarLayout alloc] init];
     
-    CalendarCollectionViewController *ccvc = [[CalendarCollectionViewController alloc] initWithCollectionViewLayout:layout];
-    [self presentViewController:ccvc animated:YES completion:nil];
+    CalendarViewController *ccvc = [[CalendarViewController alloc] initWithYear:1989 month:1];
+    ccvc.selectDateFinishedBlock = ^(MyCalendarDayModel* dayModel){
+        NSLog(@"select date = %@",dayModel.date);
+    };
+    [self.navigationController pushViewController:ccvc animated:YES];
+    // [self presentViewController:ccvc animated:YES completion:nil];
 }
 
 - (void)didReceiveMemoryWarning {

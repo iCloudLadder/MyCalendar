@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "MyCalendarDayModel.h"
+#import "NSDate+Calendar.h"
 
 @interface CalendarCollectinViewCell : UICollectionViewCell
 
@@ -20,5 +21,9 @@
 @property (nonatomic, strong) UILabel *holidayLabel;
 
 @property (nonatomic, assign) BOOL hiddenPerAndNextMonthDay;
+
+
+// 日期 是否是 今天
+-(BOOL)dateIsTodayWith:(MyCalendarDayModel*)dayModel;
 
 @end

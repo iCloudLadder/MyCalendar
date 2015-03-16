@@ -9,8 +9,8 @@
 #import "CalendarLayout.h"
 
 #define kWeekDays 7
-#define kItemBaseHeight 30.0
-#define kSectionHeaderHeight 80.0
+#define kItemBaseHeight 12.0
+// #define kSectionHeaderHeight 70.0
 
 @implementation CalendarLayout
 
@@ -26,7 +26,7 @@
     self.itemSize = CGSizeMake(itemWidth, itemWidth+kItemBaseHeight);
     self.minimumInteritemSpacing = 0.0;
     self.minimumLineSpacing = 0.0;
-    self.headerReferenceSize = CGSizeMake(CGRectGetWidth(self.collectionView.frame), kSectionHeaderHeight);
+    // self.headerReferenceSize = CGSizeMake(CGRectGetWidth(self.collectionView.frame), kSectionHeaderHeight);
     self.sectionInset = UIEdgeInsetsMake(0, hSpace, 0, hSpace);
     self.scrollDirection = UICollectionViewScrollDirectionVertical;
 }
