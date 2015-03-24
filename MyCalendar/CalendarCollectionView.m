@@ -10,10 +10,10 @@
 #import "CalendarLayout.h"
 #import "CalendarHeaderView.h"
 #import "UIView+ResetFrame.h"
+#import "ShowYearAndMonthView.h"
 
 
 @interface CalendarCollectionView ()<UICollectionViewDelegate, UIGestureRecognizerDelegate>
-
 
 
 @property (nonatomic, strong) SYCollectionView *mainCollectionView;
@@ -22,29 +22,31 @@
 
 @property (nonatomic, strong) CalendarHeaderView *headerView;
 
+@property (nonatomic, assign) CGFloat headerViewHeight;
+
+
 @property (nonatomic, assign) CGFloat panDistance;
+
 
 @end
 
 @implementation CalendarCollectionView
 
-#define kHeaderViewHeight (70.0)
+#define kHeaderViewBaseHeight (30.0)
+#define kHeaderViewMaxHeight (70.0)
 
 #define kTopSubViewsOriginY ((([UIDevice currentDevice].systemVersion.floatValue) >= (7.0))?(64.0):(0.0))
-
 #define kPanMinDistance (50.0)
 
 static NSString * const reuseIdentifier = @"Cell";
 static NSString * const sectionHeaderReuseIdentifier = @"SectionHeaderView";
 
-#pragma mark - 初始化
+#pragma mark - init
 
 -(instancetype)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
     if (self) {
-        // 初始化headerView
-        [self initHeaderView];
         // 初始化日期CollectionView
         [self initCollectionView];
         // 添加滑动手势
@@ -63,21 +65,25 @@ static NSString * const sectionHeaderReuseIdentifier = @"SectionHeaderView";
 }
 
 
-#pragma mark - 初始化 部分数据
--(void)initHeaderView
+-(void)showYearAndMonthWith:(SYShowYearAndMonthType)type
 {
-    CGRect frame = CGRectMake(0, kTopSubViewsOriginY, CGRectGetWidth(self.frame), kHeaderViewHeight);
-    _headerView = [[CalendarHeaderView alloc] initWithFrame:frame];
-    // 上下月份 事件
-    __weak CalendarCollectionView *weakSelf = self;
-    _headerView.plusOrMinusMonthBlock = ^(NSInteger months){
-        [weakSelf creatOtherCalendarWith:months];
-        weakSelf.panDistance = -months*kPanMinDistance;
-        [weakSelf panFinished];
-    };
+    self.headerViewHeight = (type == SYShowYearAndMonthTypeOnNavigation)?kHeaderViewBaseHeight:kHeaderViewMaxHeight;
+    _headerView = [self creatHeaderViewWith:_headerViewHeight];
+    if (type == SYShowYearAndMonthTypeOnHeader) {
+        [_headerView addSubview:self.showYMView];
+    }else{
+        
+    }
     [self addSubview:_headerView];
 }
 
+#pragma mark - 初始化 部分数据
+-(CalendarHeaderView*)creatHeaderViewWith:(CGFloat)height
+{
+    CGRect frame = CGRectMake(0.0, kTopSubViewsOriginY, CGRectGetWidth(self.frame), height);
+    CalendarHeaderView *headerView = [[CalendarHeaderView alloc] initWithFrame:frame];
+    return headerView;
+}
 
 -(void)initCollectionView
 {
@@ -85,27 +91,59 @@ static NSString * const sectionHeaderReuseIdentifier = @"SectionHeaderView";
     [self addSubview:_mainCollectionView];
 }
 
-#pragma mark -设置数据
+-(void)initYearAndMonthOfTheDate
+{
+    CGRect frame = CGRectMake(0.0, 0.0, CGRectGetWidth(self.frame) - 180.0, kHeaderViewMaxHeight - kHeaderViewBaseHeight);
+    _showYMView = [[ShowYearAndMonthView alloc] initWithFrame:frame];
+    CalendarCollectionView __weak *weakSelf = self;
+    _showYMView.plusOrMinMonth = ^(NSInteger months){
+        [weakSelf showOtherCalendarViewWith:months];
+    };
+    [self addSubview:_showYMView];
+}
+
+
+-(void)showOtherCalendarViewWith:(NSInteger)months
+{
+    [self creatOtherCalendarWith:months];
+    self.panDistance = -months*kPanMinDistance;
+    [self panFinished];
+}
+
+#pragma mark - set & get
+
+-(ShowYearAndMonthView *)showYMView
+{
+    if (_showYMView == nil) {
+        [self initYearAndMonthOfTheDate];
+    }
+    return _showYMView;
+}
 
 -(void)setBaseDate:(NSDate *)baseDate
 {
     _baseDate = baseDate;
-    if (_headerView.baseDate == nil) {
-        _headerView.baseDate = _baseDate;
-    }
+    self.showYMView.currentDate = _baseDate;
     if (self.mainCollectionView.dayModels == nil) {
         self.mainCollectionView.dayModels = [_baseDate getDayModelsInCurrentMonth];
     }
 }
 
+-(void)setHeaderViewHeight:(CGFloat)headerViewHeight
+{
+    _headerViewHeight = headerViewHeight;
+    _mainCollectionView.frame = CGRectMake( 0.0, _headerViewHeight, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame) - _headerViewHeight);
+}
+
+#pragma mark - SYCollectionView
+
 -(SYCollectionView*)creatCalendarCollectionView //With:(NSDate*)baseDate
 {
     CalendarLayout *layout = [[CalendarLayout alloc] init];
     CGRect frame = self.bounds;
-    frame.origin.y = kHeaderViewHeight + kTopSubViewsOriginY;
-    frame.size.height -= kHeaderViewHeight;
+    frame.origin.y = self.headerViewHeight + kTopSubViewsOriginY;
+    frame.size.height -= self.headerViewHeight;
     SYCollectionView *cv = [[SYCollectionView alloc] initWithFrame:frame collectionViewLayout:layout];
-    // cv.delegate = self;
     return cv;
 }
 
@@ -114,8 +152,15 @@ static NSString * const sectionHeaderReuseIdentifier = @"SectionHeaderView";
 
 
 
-
-#pragma mark - a
+/**
+ **
+ **
+ **
+ **
+ **
+ **
+ **/
+#pragma mark - PanGestureRecognizer
 
 -(void)addPanGestureRecognizer
 {
@@ -146,8 +191,12 @@ static NSString * const sectionHeaderReuseIdentifier = @"SectionHeaderView";
         [self creatOtherCalendarWith:velocity.x>0?-1:1];
     }else if (pgr.state == UIGestureRecognizerStateChanged){
         CGFloat temDistance = _panDistance + transPoint.x;
-        if (temDistance*_panDistance < 0 || _otherCollectionView == nil) {
-            [self creatOtherCalendarWith:_panDistance>0?1:-1];
+        if (temDistance*_panDistance <= 0 || _otherCollectionView == nil) {
+            if (_panDistance) {
+                [self creatOtherCalendarWith:_panDistance>0?1:-1];
+            }else{
+                [self creatOtherCalendarWith:transPoint.x<0?1:-1];
+            }
         }
         _panDistance = temDistance;
         [self resetFrameWith:transPoint.x];
@@ -175,7 +224,7 @@ static NSString * const sectionHeaderReuseIdentifier = @"SectionHeaderView";
     _otherCollectionView.dayModels = [_otherBaseDate getDayModelsInCurrentMonth];
     // 重新设置frame
     CGRect frame = _otherCollectionView.frame;
-    frame.origin.x = CGRectGetWidth(self.frame)*month;
+    frame.origin.x = CGRectGetWidth(self.frame)*month + _panDistance;
     _otherCollectionView.frame = frame;
     [_otherCollectionView setLayerShadow];
     [self addSubview:_otherCollectionView];
@@ -218,7 +267,6 @@ static NSString * const sectionHeaderReuseIdentifier = @"SectionHeaderView";
             [weakSelf.mainCollectionView removeFromSuperview];
             weakSelf.mainCollectionView = weakSelf.otherCollectionView;
             weakSelf.baseDate = weakSelf.otherBaseDate;
-            weakSelf.headerView.baseDate = weakSelf.otherBaseDate;
         }else{
             [weakSelf.otherCollectionView removeFromSuperview];
         }

@@ -57,11 +57,11 @@ typedef NSCalendar* (^CalendarBlock)(NSString *calendarIdentifier);
 {
     // 天数
     NSInteger numberOfDays = [self getNumberOfDaysInCurrentMonth];
-    NSDateComponents *components = [kShareCalendar components:[self getYMDWCalendarUnit] fromDate:self];
+    NSDateComponents *components = [self getDateComponestsWith:[self getYMDWCalendarUnit]];// [kShareCalendar components:[self getYMDWCalendarUnit] fromDate:self];
     // 当月 日历 数据
     for (NSInteger day = 1; day <= numberOfDays; day++) {
         // 设置 day 后 新的 日历结构
-        NSDateComponents *newComponents = [self getNewComponentsAfterSetDayWith:components with:day];
+        NSDateComponents *newComponents = [self getNewComponentsAfterSetDayWith:components day:day];
         [dayModels addObject:[self getDayModelWith:newComponents day:day dayOfMonth:DayOfMonthCurrentMonth]];
     }
     
@@ -71,7 +71,7 @@ typedef NSCalendar* (^CalendarBlock)(NSString *calendarIdentifier);
 }
 
 // 从新设置 天 后，获取新的components
--(NSDateComponents*)getNewComponentsAfterSetDayWith:(NSDateComponents*)com with:(NSUInteger)day
+-(NSDateComponents*)getNewComponentsAfterSetDayWith:(NSDateComponents*)com day:(NSUInteger)day
 {
     [com setDay:day];
     NSDate *newDate = [kShareCalendar dateFromComponents:com];
@@ -88,10 +88,10 @@ typedef NSCalendar* (^CalendarBlock)(NSString *calendarIdentifier);
     NSUInteger daysPerMonth = [perMonthDay getNumberOfDaysInCurrentMonth];
     
     NSMutableArray *dayModels = [[NSMutableArray alloc] init];
-    NSDateComponents *components = [kShareCalendar components:[self getYMDWCalendarUnit] fromDate:perMonthDay];
+    NSDateComponents *components = [perMonthDay getDateComponestsWith:[perMonthDay getYMDWCalendarUnit]];// [kShareCalendar components:[self getYMDWCalendarUnit] fromDate:perMonthDay];
     // 上个月 在 当前月的天 的日历数据
     for (NSInteger day = daysPerMonth - daysOfPerMonthInCureentMonth + 1; day <= daysPerMonth; ++day) {
-        NSDateComponents *newComponents = [self getNewComponentsAfterSetDayWith:components with:day];
+        NSDateComponents *newComponents = [self getNewComponentsAfterSetDayWith:components day:day];
         [dayModels addObject:[self getDayModelWith:newComponents day:day dayOfMonth:DayOfMonthPerMonth]];
     }
     return dayModels;
@@ -106,7 +106,7 @@ typedef NSCalendar* (^CalendarBlock)(NSString *calendarIdentifier);
     
     NSMutableArray *dayModels = [[NSMutableArray alloc] init];
     // 当前 perMonthDay 所在月份的 日历结构
-    NSDateComponents *components = [kShareCalendar components:[self getYMDWCalendarUnit] fromDate:perMonthDay];
+    NSDateComponents *components =  [perMonthDay getDateComponestsWith:[perMonthDay getYMDWCalendarUnit]];// [kShareCalendar components:[self getYMDWCalendarUnit] fromDate:perMonthDay];
     //
     for (NSInteger day = 1; day <= 7 - weekDayOfLastDay; ++day) {
         [components setDay:day];
@@ -139,10 +139,10 @@ typedef NSCalendar* (^CalendarBlock)(NSString *calendarIdentifier);
 {
     MyCalendarDayModel *dayModel = [[MyCalendarDayModel alloc] init];
     dayModel.date = [kShareCalendar dateFromComponents:components];
-    dayModel.year = [NSString stringWithFormat:@"%ld",components.year];
-    dayModel.month = [NSString stringWithFormat:@"%ld",components.month];
-    dayModel.day = [NSString stringWithFormat:@"%ld",components.day];
-    dayModel.weekDay = [self getDateWeekDayWith:components];
+    dayModel.year = [NSString stringWithFormat:@"%ld",(long)components.year];
+    dayModel.month = [NSString stringWithFormat:@"%ld",(long)components.month];
+    dayModel.day = [NSString stringWithFormat:@"%ld",(long)components.day];
+    dayModel.weekDay = components.weekday;// [self getDateWeekDayWith:components];
 
     dayModel.holiday = [MyCalendarObject getGregorianHolidayWith:[components copy]];
     dayModel.dayOfMonth = dayOfMonth;
@@ -165,9 +165,9 @@ typedef NSCalendar* (^CalendarBlock)(NSString *calendarIdentifier);
     // 计算 农历 年份
     NSInteger chineseYear = gregorianComponents.month < chineseComponents.month?gregorianComponents.year-1:gregorianComponents.year;
     
-    dayModel.chineseYearNumber = [NSString stringWithFormat:@"%ld",chineseYear];
-    dayModel.chineseMonthNumber = [NSString stringWithFormat:@"%ld",chineseComponents.month];
-    dayModel.chineseDayNumber = [NSString stringWithFormat:@"%ld",chineseComponents.day];
+    dayModel.chineseYearNumber = [NSString stringWithFormat:@"%ld",(long)chineseYear];
+    dayModel.chineseMonthNumber = [NSString stringWithFormat:@"%ld",(long)chineseComponents.month];
+    dayModel.chineseDayNumber = [NSString stringWithFormat:@"%ld",(long)chineseComponents.day];
     dayModel.chineseMonth = chineseCalendar[@"month"];
     dayModel.chineseDay = chineseCalendar[@"day"];
     dayModel.chineseHoliday = chineseCalendar[@"holiday"];
@@ -177,6 +177,12 @@ typedef NSCalendar* (^CalendarBlock)(NSString *calendarIdentifier);
 
 
 #pragma mark - handle 日期转换
+
+// 根据日期获取 NSDateComponents
+-(NSDateComponents*)getDateComponestsWith:(NSCalendarUnit)unit
+{
+    return [kShareCalendar components:unit fromDate:self];
+}
 
 
 // 年 月 日 周 月份第几周
@@ -221,7 +227,7 @@ typedef NSCalendar* (^CalendarBlock)(NSString *calendarIdentifier);
 -(NSUInteger)getLastDayIsWeekDayInCurrentMonthWith:(NSUInteger)daysInCurrentMonth
 {
     // NSCalendarUnit YMD = NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay ;
-    NSDateComponents *components = [kShareCalendar components:[self getYMDWCalendarUnit] fromDate:self];
+    NSDateComponents *components = [self getDateComponestsWith:[self getYMDWCalendarUnit]];// [kShareCalendar components:[self getYMDWCalendarUnit] fromDate:self];
     components.day = daysInCurrentMonth;
     NSDate *date = [kShareCalendar dateFromComponents:components];
     return [kShareCalendar ordinalityOfUnit:NSCalendarUnitDay inUnit:NSCalendarUnitWeekOfMonth forDate:date];
@@ -252,19 +258,25 @@ typedef NSCalendar* (^CalendarBlock)(NSString *calendarIdentifier);
 +(NSDate*)getDateOfFirstDayWith:(NSInteger)year month:(NSInteger)month
 {
     NSDate *nowDate = [NSDate date];
-    NSDateComponents *nowComponents = [kShareCalendar components:[nowDate getYMDWCalendarUnit] fromDate:nowDate];
-    
-    NSInteger numMonths = (year - nowComponents.year)*12 + month - nowComponents.month;
-    
+    NSInteger numMonths = [nowDate getMonthsWith:year month:month];
     return [nowDate getDateOfOtherMonthFrom:numMonths];
 }
+
+// 根据年，月 返回与日期相差的月份
+-(NSInteger)getMonthsWith:(NSInteger)year month:(NSInteger)month
+{
+    NSDateComponents *nowComponents = [self getDateComponestsWith:[self getYMDWCalendarUnit]]; // [kShareCalendar components:[self getYMDWCalendarUnit] fromDate:self];
+    return (year - nowComponents.year)*12 + month - nowComponents.month;
+}
+
+
 
 // 比较日期是否是今天
 -(BOOL)isToday{
     return [self isTheSameDay:[NSDate date]];
 }
 
-// 比较两个人日期是否为同一天
+// 比较两个日期是否为同一天
 -(BOOL)isTheSameDay:(NSDate*)date
 {
     return [[self getEraYearMonthDayDate] isEqualToDate:[date getEraYearMonthDayDate]];
@@ -275,8 +287,6 @@ typedef NSCalendar* (^CalendarBlock)(NSString *calendarIdentifier);
     NSDateComponents *components = [kShareCalendar components:(NSCalendarUnitEra | NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay) fromDate:self];
     return [kShareCalendar dateFromComponents:components];
 }
-
-
 
 
 

@@ -90,7 +90,7 @@ static NSDictionary *_holidays = nil;
 +(NSString*)getGregorianHolidayWith:(NSDateComponents*)components
 {
     NSDictionary *holiday = [MyCalendarObject getHolidaysDictionaryWith:@"GregorianHolidays"];
-    NSString *key = [NSString stringWithFormat:@"%.2ld%.2ld",components.month,components.day];
+    NSString *key = [NSString stringWithFormat:@"%.2ld%.2ld",(long)components.month,(long)components.day];
     NSString *holidayText = holiday[key];
     NSString *otherHoliday = [MyCalendarObject getOtherGregorianHolidayWith:components];
 
@@ -104,7 +104,7 @@ static NSDictionary *_holidays = nil;
 +(NSString*)getChineseHolidayWith:(NSInteger)month day:(NSInteger)day
 {
     NSDictionary *holiday = [MyCalendarObject getHolidaysDictionaryWith:@"ChineseHolidays"];
-    NSString *key = [NSString stringWithFormat:@"%.2ld%.2ld",month,day];
+    NSString *key = [NSString stringWithFormat:@"%.2ld%.2ld",(long)month,(long)day];
     NSString *holidayText = holiday[key];
     if (holidayText) {
         return holidayText;

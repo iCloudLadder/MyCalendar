@@ -21,14 +21,14 @@ typedef NS_ENUM(NSInteger, DayOfMonth) {
 @property (nonatomic, strong) NSString *year,*month,*day,*holiday;
 
 @property (nonatomic, assign) NSInteger weekDay;
-
+// 数字
 @property (nonatomic, strong) NSString *chineseYearNumber,*chineseMonthNumber,*chineseDayNumber;
 
 @property (nonatomic, strong) NSString *chineseLeap,*chineseHoliday;
-
+// 阴历 汉文 
 @property (nonatomic, strong) NSString *chineseMonth,*chineseDay;
 
-
+// 在那个月
 @property (nonatomic, assign) DayOfMonth dayOfMonth;
 
 

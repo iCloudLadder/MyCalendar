@@ -20,8 +20,8 @@
 
 @property (nonatomic, strong) UILabel *holidayLabel;
 
-@property (nonatomic, assign) BOOL hiddenPerAndNextMonthDay;
-
+//@property (nonatomic, assign) BOOL hiddenPerAndNextMonthDay;
+-(void)setHiddenPerAndNextMonthDay:(BOOL)hiddenPerAndNextMonthDay;
 
 // 日期 是否是 今天
 -(BOOL)dateIsTodayWith:(MyCalendarDayModel*)dayModel;

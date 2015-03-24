@@ -7,15 +7,8 @@
 //
 
 #import "CalendarHeaderView.h"
-#import "NSDate+Calendar.h"
-#import "UIButton+BackgroundImage.h"
 
 
-@interface CalendarHeaderView ()
-
-@property (nonatomic, strong) UILabel *dateLable;
-
-@end
 typedef NS_ENUM(NSInteger, ChangeMonthButtonsTag) {
     MinusChangeMonthButtonsTag = 1201,
     PlusChangeMonthButtonsTag
@@ -27,8 +20,8 @@ typedef NS_ENUM(NSInteger, ChangeMonthButtonsTag) {
 // 周几 标签高度
 #define kWeekLabelHeight (30.0)
 // 加减月份 按钮宽度
-#define kChangeMonthButtonsWidth (55.0)
-// 状态栏 高度
+// #define kChangeMonthButtonsWidth (55.0)
+// 顶部子视图 Y轴坐标
 #define kTopSubViewsOriginY 0.0 
 // 加减月份 和 日期（年月）标签 高度
 #define kTopSubViewsHeight ((CGRectGetHeight(self.frame))-(kWeekLabelHeight)-(kTopSubViewsOriginY))
@@ -37,77 +30,10 @@ typedef NS_ENUM(NSInteger, ChangeMonthButtonsTag) {
 {
     self = [super initWithFrame:frame];
     if (self) {
-        // 日历 默认显示 当日所在月份 日历
-        //_monthDate = [NSDate date];
-        // 周 标签
         [self creatWeekDayLable];
-        // 年月 标签
-        [self creatDateLable];
-        // 加减月份 按钮
-        [self creatChangeMonthButtons];
     }
     return self;
 }
-
-
-#pragma mark - date change button
-
-
--(void)creatChangeMonthButtons
-{
-    NSArray *buttonsTitle = @[@"-",@"+"];
-    __weak CalendarHeaderView *weakSelf = self;
-    [buttonsTitle enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        CGFloat originX = idx?CGRectGetWidth(weakSelf.frame)-kChangeMonthButtonsWidth:0.0;
-        [weakSelf creatButtonWith:CGRectMake(originX, kTopSubViewsOriginY, kChangeMonthButtonsWidth, kTopSubViewsHeight) title:obj tag:idx+MinusChangeMonthButtonsTag];
-    }];
-}
-
--(void)creatButtonWith:(CGRect)frame title:(NSString*)title tag:(ChangeMonthButtonsTag)tag
-{
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    button.frame = frame;
-    [button setTitle:title forState:UIControlStateNormal];
-    button.tag = tag;
-    button.titleLabel.font = [UIFont boldSystemFontOfSize:24];
-    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [button setBackgroundImageWith:title];
-    [button addTarget:self action:@selector(pluAndMinMonthEvent:) forControlEvents:UIControlEventTouchUpInside];
-    [self addSubview:button];
-}
-
-
-
--(void)pluAndMinMonthEvent:(UIButton*)sender
-{
-    NSInteger months = (sender.tag == MinusChangeMonthButtonsTag)?-1:1;
-    _plusOrMinusMonthBlock(months);
-}
-
-#pragma mark - date lable (year,month)
-
--(void)creatDateLable
-{
-    CGRect frame = CGRectMake(0, kTopSubViewsOriginY, CGRectGetWidth(self.frame), kTopSubViewsHeight);
-    _dateLable = [self creatWeekDayLabelWithFrame:frame text:[self getDateLableTextWith:_baseDate] textColor:[UIColor magentaColor]];
-    [self addSubview:_dateLable];
-}
-
--(NSString*)getDateLableTextWith:(NSDate*)date
-{
-    if (!date) {
-        date = [NSDate date];
-    }
-    return [date getStringOfToday];
-}
-
-
--(void)setBaseDate:(NSDate *)baseDate
-{
-    _baseDate = baseDate;
-    _dateLable.text = [self getDateLableTextWith:_baseDate];
-}
-
 
 
 #pragma mark - weekDay label
@@ -155,12 +81,7 @@ typedef NS_ENUM(NSInteger, ChangeMonthButtonsTag) {
 }
 
 
-
-
-
-
-
-
+#pragma mark -drawRect
 -(void)drawRect:(CGRect)rect
 {
     CGContextRef context = UIGraphicsGetCurrentContext();
@@ -183,7 +104,45 @@ typedef NS_ENUM(NSInteger, ChangeMonthButtonsTag) {
 // An empty implementation adversely affects performance during animation.
 - (void)drawRect:(CGRect)rect {
     // Drawing code
-}
+}*/
+ 
+ /*
+ // 加减月份 按钮
+ [self creatChangeMonthButtons];
+ 
+ #pragma mark - date change button
+ 
+ 
+ -(void)creatChangeMonthButtons
+ {
+ NSArray *buttonsTitle = @[@"-",@"+"];
+ __weak CalendarHeaderView *weakSelf = self;
+ [buttonsTitle enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+ CGFloat originX = idx?CGRectGetWidth(weakSelf.frame)-kChangeMonthButtonsWidth:0.0;
+ [weakSelf creatButtonWith:CGRectMake(originX, kTopSubViewsOriginY, kChangeMonthButtonsWidth, kTopSubViewsHeight) title:obj tag:idx+MinusChangeMonthButtonsTag];
+ }];
+ }
+ 
+ -(void)creatButtonWith:(CGRect)frame title:(NSString*)title tag:(ChangeMonthButtonsTag)tag
+ {
+ UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+ button.frame = frame;
+ [button setTitle:title forState:UIControlStateNormal];
+ button.tag = tag;
+ button.titleLabel.font = [UIFont boldSystemFontOfSize:24];
+ [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+ [button setBackgroundImageWith:title];
+ [button addTarget:self action:@selector(pluAndMinMonthEvent:) forControlEvents:UIControlEventTouchUpInside];
+ [self addSubview:button];
+ }
+ 
+ 
+ 
+ -(void)pluAndMinMonthEvent:(UIButton*)sender
+ {
+ NSInteger months = (sender.tag == MinusChangeMonthButtonsTag)?-1:1;
+ _plusOrMinusMonthBlock(months);
+ }
 */
 
 @end

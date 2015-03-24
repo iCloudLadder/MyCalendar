@@ -7,10 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "NSDate+Calendar.h"
 
 typedef void (^SYPlusOrMinMonthBlock)(NSInteger months);
 
 @interface ShowYearAndMonthView : UIView
+
+@property (nonatomic, strong) NSDate *currentDate;
 
 @property (nonatomic, copy) SYPlusOrMinMonthBlock plusOrMinMonth;
 

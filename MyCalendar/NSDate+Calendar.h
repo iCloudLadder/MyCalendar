@@ -21,8 +21,14 @@
 // 年 月 日 日历单元
 -(NSCalendarUnit)getYMDWCalendarUnit;
 
+// 根据日期获取 NSDateComponents
+-(NSDateComponents*)getDateComponestsWith:(NSCalendarUnit)unit;
+
 // self 所在月份的天数
 -(NSUInteger)getNumberOfDaysInCurrentMonth;
+
+// 根据年，月 返回与日期相差的月份
+-(NSInteger)getMonthsWith:(NSInteger)year month:(NSInteger)month;
 
 // self相差month个月的日期
 -(NSDate*)getDateOfOtherMonthFrom:(NSInteger)month;

@@ -10,6 +10,8 @@
 #import "CalendarCollectionView.h"
 #import "UIView+ResetFrame.h"
 
+#import "ShowYearAndMonthView.h"
+
 @interface CalendarViewController ()<SelectDateProtocol>
 
 @property (nonatomic, strong) CalendarCollectionView *mainCalendar;
@@ -36,8 +38,13 @@
     self.view.backgroundColor = [UIColor whiteColor];
     
     
+    
+    
     _mainCalendar = [self creatCalendarCollectionViewWith:[NSDate getDateOfFirstDayWith:_year month:_month]];
     [self.view addSubview:_mainCalendar];
+    
+    self.navigationItem.titleView = _mainCalendar.showYMView;
+    
 }
 
 
@@ -46,6 +53,9 @@
 -(CalendarCollectionView*)creatCalendarCollectionViewWith:(NSDate*)baseDate
 {
     CalendarCollectionView *ccv = [[CalendarCollectionView alloc] initWithFrame:self.view.bounds];
+    
+    // SYShowYearAndMonthTypeOnHeader
+    [ccv showYearAndMonthWith:SYShowYearAndMonthTypeOnNavigation];
     ccv.selectDateDelegate = self;
     ccv.baseDate = baseDate;
     return ccv;

@@ -7,15 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "ShowYearAndMonthView.h"
 
 @interface CalendarHeaderView : UIView
-
-@property (nonatomic, strong) NSDate *baseDate;
-
-@property (nonatomic, copy) SYPlusOrMinMonthBlock plusOrMinusMonthBlock;
-
-@property (nonatomic, strong) NSString *perButtonImageName;
-@property (nonatomic, strong) NSString *nextButtonImageName;
 
 @end

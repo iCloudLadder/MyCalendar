@@ -24,7 +24,7 @@
 
 -(void)clearLayerShadow
 {
-
+    self.layer.borderColor = [UIColor clearColor].CGColor;
 }
 
 

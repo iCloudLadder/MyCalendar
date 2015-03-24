@@ -34,11 +34,14 @@ typedef NS_ENUM(NSInteger, ShowYearAndMonthViewSubViewTags) {
 
 @implementation ShowYearAndMonthView
 
-#define kInputTextFieldWidth (50.0)
+#define kSubViewsHeight (30.0)
+
+#define kInputTextFieldWidth_4 (12.0)
 #define kLableWidth (15.0)
 
 #define kChangeMonthButtonsWidth (50.0)
 #define kTopSubViewsOriginY (0.0)
+
 
 
 #define kShowYearAndMonthTextColor [UIColor magentaColor]
@@ -55,18 +58,34 @@ typedef NS_ENUM(NSInteger, ShowYearAndMonthViewSubViewTags) {
     return self;
 }
 
+
+#pragma mark - 
+
+-(void)setCurrentDate:(NSDate *)currentDate
+{
+    _currentDate = currentDate;
+    NSDateComponents *com = [_currentDate getDateComponestsWith:NSCalendarUnitMonth | NSCalendarUnitYear];
+    _inputMonthTF.text = [NSString stringWithFormat:@"%ld",(long)com.month];
+    _inputYearTF.text = [NSString stringWithFormat:@"%ld",(long)com.year];
+    
+    [UIApplication sharedApplication].keyWindow.rootViewController.view.userInteractionEnabled = YES;
+
+}
+
 #pragma mark - showYearAndMonthButton
 
 -(void)creatShowYearAndMonthSubviews
 {
-    CGFloat originY = 3.0;
-    CGFloat centerX = CGRectGetWidth(self.frame)/2;
-    CGFloat height = CGRectGetHeight(self.frame) - originY*2;
     
-    CGRect  inputYearRect = CGRectMake(centerX - kLableWidth - kInputTextFieldWidth, originY, kInputTextFieldWidth, height);
-    CGRect  yearLableRect = CGRectMake(centerX - kLableWidth, originY, kLableWidth, height);
-    CGRect  inputMonthRect = CGRectMake(centerX, originY, kInputTextFieldWidth, height);
-    CGRect  monthLableRect = CGRectMake(centerX + kInputTextFieldWidth, originY, kLableWidth, height);
+    CGFloat originY = (CGRectGetHeight(self.frame) - kSubViewsHeight)/2;
+    CGFloat centerX = CGRectGetWidth(self.frame)/2;
+    CGFloat height = kSubViewsHeight;
+    CGFloat offSet = centerX - (kInputTextFieldWidth_4*6 + kLableWidth*2)/2;
+    
+    CGRect  inputYearRect = CGRectMake(offSet, originY, kInputTextFieldWidth_4*4, height);
+    CGRect  yearLableRect = CGRectMake(offSet + kInputTextFieldWidth_4*4, originY, kLableWidth, height);
+    CGRect  inputMonthRect = CGRectMake(offSet + kInputTextFieldWidth_4*4 + kLableWidth, originY, kInputTextFieldWidth_4*2, height);
+    CGRect  monthLableRect = CGRectMake(offSet + kInputTextFieldWidth_4*6 + kLableWidth, originY, kLableWidth, height);
 
     _inputYearTF = [self creatInputTextFieldWith:inputYearRect tag:kInputYearTextFieldTag];
     _inputMonthTF = [self creatInputTextFieldWith:inputMonthRect tag:kInputMonthTextFieldTag];
@@ -89,9 +108,11 @@ typedef NS_ENUM(NSInteger, ShowYearAndMonthViewSubViewTags) {
 {
     UITextField *tf = [[UITextField alloc] initWithFrame:frame];
     tf.tag = tag;
+    tf.keyboardType = UIKeyboardTypeNumbersAndPunctuation;
     tf.textColor = kShowYearAndMonthTextColor;
     tf.textAlignment = NSTextAlignmentCenter;
     tf.delegate = self;
+    tf.returnKeyType = tag == kInputYearTextFieldTag?UIReturnKeyNext:UIReturnKeyDone;
     return tf;
 }
 
@@ -103,6 +124,21 @@ typedef NS_ENUM(NSInteger, ShowYearAndMonthViewSubViewTags) {
     label.textAlignment = NSTextAlignmentCenter;
     label.backgroundColor = [UIColor clearColor];
     return label;
+}
+
+
+#pragma mark - handle input date
+
+-(void)handleInputDate
+{
+    // 处理输入日期
+    NSInteger months = [self.currentDate getMonthsWith:_inputYearTF.text.integerValue month:_inputMonthTF.text.integerValue];
+    NSDate *date = [self.currentDate getDateOfOtherMonthFrom:months];
+    if (![self.currentDate isEqualToDate:date]) {
+        _plusOrMinMonth(months);
+        self.currentDate = date;
+    }
+
 }
 
 
@@ -137,8 +173,11 @@ typedef NS_ENUM(NSInteger, ShowYearAndMonthViewSubViewTags) {
 
 -(void)pluAndMinMonthEvent:(UIButton*)sender
 {
+    [UIApplication sharedApplication].keyWindow.rootViewController.view.userInteractionEnabled = NO;
+    
     NSInteger months = (sender.tag == kMinusChangeMonthButtonsTag)?-1:1;
     _plusOrMinMonth(months);
+    
 }
 
 
@@ -147,14 +186,7 @@ typedef NS_ENUM(NSInteger, ShowYearAndMonthViewSubViewTags) {
 
 -(BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
 {
-//    if (string.length && [@"0123456789" rangeOfString:string].location == NSNotFound) {
-//        return NO;
-//    }else if (textField.tag == kInputMonthTextFieldTag){
-//        
-//    }
-    NSInteger maxLength = textField.tag == kInputYearTextFieldTag ? 4 : 2;
-//    //return range.length?: textField.text.length < maxLength;
-    
+    NSInteger maxLength = textField.tag == kInputYearTextFieldTag ? 4 : 2;    
     if (range.length) {
         return YES;
     }else if ([@"0123456789" rangeOfString:string].location != NSNotFound){
@@ -171,27 +203,43 @@ typedef NS_ENUM(NSInteger, ShowYearAndMonthViewSubViewTags) {
 -(BOOL)textFieldShouldReturn:(UITextField *)textField
 {
     if (textField.tag == kInputYearTextFieldTag) {
-        if (textField.text.integerValue >= 1900) {
-            
-        }
+        // 限制年份
+//        if (textField.text.integerValue >= 1900) {
+//        }
         [_inputMonthTF becomeFirstResponder];
     }else if (textField.tag == kInputMonthTextFieldTag){
+        if (textField.text.integerValue == 0) {
+            return NO;
+        }
+        [self handleInputDate];
         [textField resignFirstResponder];
     }
+    
+
     return YES;
 }
 
 -(BOOL)textFieldShouldBeginEditing:(UITextField *)textField
 {
-    [_inputMonthTF resetLayerShadowAttributeWith:YES];
-    [_inputYearTF resetLayerShadowAttributeWith:YES];
+    [textField resetLayerShadowAttributeWith:YES];
     return YES;
 }
 
 -(BOOL)textFieldShouldEndEditing:(UITextField *)textField
 {
-
     return YES;
+}
+
+-(void)textFieldDidEndEditing:(UITextField *)textField
+{
+    [textField resetLayerShadowAttributeWith:NO];
+}
+
+
+-(void)setInputTFLayerWith:(BOOL)editing
+{
+    [_inputYearTF resetLayerShadowAttributeWith:editing];
+    [_inputMonthTF resetLayerShadowAttributeWith:editing];
 }
 
 

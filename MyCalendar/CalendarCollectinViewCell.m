@@ -40,13 +40,16 @@
 {
     if (self = [super initWithFrame:frame]) {
         [self creatSubViews];
+        // 耗时间
 //        [self addObserver:self
 //               forKeyPath:@"selected"
 //                  options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld
 //                  context:nil];
+        [self addBottomLineLayer];
     }
     return self;
 }
+
 
 -(void)setSelfBackgroundView
 {
@@ -143,28 +146,6 @@
     _chineseDayLabel.text = text;
     // [self resetChineseDayLabelTextWith:text];
 }
-/*
-// 设置 中国日历 标签
--(void)resetChineseDayLabelTextWith:(NSString*)text
-{
-    CGFloat maxHeight = _sigleHeight*2;
-    CGFloat height = [self getTextSizeWith:text];
-    CGRect frame = _chineseDayLabel.frame;
-    frame.size.height = MIN(maxHeight, height);
-    _chineseDayLabel.frame = frame;
-    _chineseDayLabel.text = text;
-}
-
-// 获得 文本 高度
--(CGFloat)getTextSizeWith:(NSString*)text
-{
-    NSDictionary * tdic = [NSDictionary dictionaryWithObject:_chineseDayLabel.font forKey:NSFontAttributeName];
-    return [text boundingRectWithSize:CGSizeMake(CGRectGetWidth(_chineseDayLabel.frame), MAXFLOAT)
-                              options:NSStringDrawingUsesLineFragmentOrigin
-                           attributes:tdic
-                              context:nil].size.height;
-}
-*/
 
 
 // 设置 标签 文本的颜色
@@ -196,12 +177,15 @@
 // 是否 隐藏 前一个月 或 后一个月 在本月的 日期
 -(void)setHiddenPerAndNextMonthDay:(BOOL)hiddenPerAndNextMonthDay
 {
+
+    self.hidden = (_dayModel.dayOfMonth != DayOfMonthCurrentMonth)?hiddenPerAndNextMonthDay:NO;
+    /*
     _hiddenPerAndNextMonthDay = hiddenPerAndNextMonthDay;
     if (_dayModel.dayOfMonth != DayOfMonthCurrentMonth && _hiddenPerAndNextMonthDay) {
         self.hidden = _hiddenPerAndNextMonthDay;
     }else{
         self.hidden = NO;
-    }
+    }*/
 }
 
 // 日期 是否是 今天
@@ -216,23 +200,63 @@
 }
 
 
+-(void)addBottomLineLayer
+{
+    CALayer *bottomLineLayer = [CALayer layer];
+    
+    CGFloat colorValue = 0.8;
+    bottomLineLayer.backgroundColor = [UIColor colorWithRed:colorValue green:colorValue blue:colorValue alpha:1].CGColor;
+    
+    CGFloat height = CGRectGetHeight(self.frame);
+    CGFloat width = CGRectGetWidth(self.frame);
+    CGFloat layerHeight = 0.5;
+    bottomLineLayer.frame = CGRectMake(0.0, height-layerHeight/2, width, layerHeight);
+    
+    [self.contentView.layer addSublayer:bottomLineLayer];
+}
+
+
+
+// 耗时间
+/*
+ // 设置 中国日历 标签
+ -(void)resetChineseDayLabelTextWith:(NSString*)text
+ {
+ CGFloat maxHeight = _sigleHeight*2;
+ CGFloat height = [self getTextSizeWith:text];
+ CGRect frame = _chineseDayLabel.frame;
+ frame.size.height = MIN(maxHeight, height);
+ _chineseDayLabel.frame = frame;
+ _chineseDayLabel.text = text;
+ }
+ 
+ // 获得 文本 高度
+ -(CGFloat)getTextSizeWith:(NSString*)text
+ {
+ NSDictionary * tdic = [NSDictionary dictionaryWithObject:_chineseDayLabel.font forKey:NSFontAttributeName];
+ return [text boundingRectWithSize:CGSizeMake(CGRectGetWidth(_chineseDayLabel.frame), MAXFLOAT)
+ options:NSStringDrawingUsesLineFragmentOrigin
+ attributes:tdic
+ context:nil].size.height;
+ }
+ */
 
 
 #pragma mark - draw
-
--(void)drawRect:(CGRect)rect
-{
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextSetRGBFillColor(context, 1, 1, 1, 1);
-    CGContextFillRect(context, rect);
-    
-    CGContextSetRGBFillColor(context, 0.9, 0.9, 0.9, 1);
-    CGContextSetLineWidth(context, 0.2);
-    CGContextMoveToPoint(context, 0, rect.size.height);
-    CGContextAddLineToPoint(context, rect.size.width, rect.size.height);
-    CGContextStrokePath(context);
-    
-}
+// 耗内存
+//-(void)drawRect:(CGRect)rect
+//{
+//    CGContextRef context = UIGraphicsGetCurrentContext();
+//    CGContextSetRGBFillColor(context, 1, 1, 1, 1);
+//    CGContextFillRect(context, rect);
+//    
+//    CGContextSetRGBFillColor(context, 0.9, 0.9, 0.9, 1);
+//    CGContextSetLineWidth(context, 0.2);
+//    CGContextMoveToPoint(context, 0, rect.size.height);
+//    CGContextAddLineToPoint(context, rect.size.width, rect.size.height);
+//    CGContextStrokePath(context);
+//    
+//}
 
 
 //#pragma mark - selected

@@ -10,6 +10,14 @@
 #import "SelectDateProtocol.h"
 #import "SYCollectionView.h"
 
+@class ShowYearAndMonthView;
+
+typedef NS_ENUM(NSInteger, SYShowYearAndMonthType){
+    //SYShowYearAndMonthTypeNever,
+    SYShowYearAndMonthTypeOnHeader,
+    SYShowYearAndMonthTypeOnNavigation
+};
+
 @interface CalendarCollectionView : UIView
 
 @property(nonatomic, assign) id<SelectDateProtocol> selectDateDelegate;
@@ -17,8 +25,14 @@
 @property(nonatomic, copy) void (^selectDateBlock)(MyCalendarDayModel* dayModel);
 
 @property (nonatomic, strong) NSDate *baseDate;
+@property (nonatomic, strong) ShowYearAndMonthView *showYMView;
 
 
 -(instancetype)initWithFrame:(CGRect)frame year:(NSInteger)year month:(NSInteger)month;
+
+
+-(void)showYearAndMonthWith:(SYShowYearAndMonthType)type;
+
+-(void)showOtherCalendarViewWith:(NSInteger)months;
 
 @end
